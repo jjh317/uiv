@@ -1,62 +1,112 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 
-typedef struct {
-    int balance;
-} VendingMachine;
+const int VALID_COINS[] = {500, 100, 50, 10};
+const int COIN_COUNT = 4;
+const int PRICE = 200;
+int balance = 0;
 
-void handle_return(VendingMachine *vm) {
-    int units[] = { 500, 100, 50, 10 };
-    printf("반환 내역: ");
-    for (int i = 0; i < 4; i++) {
-        int count = vm->balance / units[i];
-        if (count > 0) printf("[%d원:%d개] ", units[i], count);
-        vm->balance %= units[i];
+void trim_newline(char *s) {
+    size_t len = strlen(s);
+    if (len > 0 && s[len - 1] == '\n') {
+        s[len - 1] = '\0';
     }
-    printf("\n");
 }
 
-void input_signal(VendingMachine *vm, int type, int val) {
-    switch (type) {
-    case 1: 
-        if (val == 500 || val == 100 || val == 50 || val == 10) {
-            vm->balance += val;
-            printf("%d원 투입. 현재 잔액: %d원\n", val, vm->balance);
-        } else {
-            printf("인식 불가 동전입니다: %d원 반환\n", val);
-        }
-        break;
+int is_valid_coin(int coin) {
+    for (int i = 0; i < COIN_COUNT; i++) {
+        if (VALID_COINS[i] == coin) return 1;
+    }
+    return 0;
+}
 
-    case 2:
-        if (vm->balance >= 200) {
-            printf("음료 지급 완료\n");
-            vm->balance -= 200;
-            printf("남은 잔액: %d원\n", vm->balance);
-            
-            if (vm->balance < 200) { 
-                printf("잔액 200원 미만 자동 반환 작동\n");
-                handle_return(vm);
+void return_module() {
+    printf("\n[거스름돈 반환 모듈]\n");
+    printf("반환 시작\n");
+
+    int counts[4] = {0, 0, 0, 0};
+    int remaining = balance;
+    int has_change = 0;
+
+    for (int i = 0; i < COIN_COUNT; i++) {
+        counts[i] = remaining / VALID_COINS[i];
+        if (counts[i] > 0) {
+            has_change = 1;
+            remaining %= VALID_COINS[i];
+        }
+    }
+
+    if (has_change) {
+        printf("거스름돈 반환 내역:\n");
+        for (int i = 0; i < COIN_COUNT; i++) {
+            if (counts[i] > 0) {
+                printf("%d원 x %d\n", VALID_COINS[i], counts[i]);
             }
-        } else {
-            printf("잔액 부족 (현재 %d원)\n", vm->balance);
         }
-        break;
-
-    case 3: 
-        printf("반환 버튼 눌림\n");
-        handle_return(vm); 
-        break;
+    } else {
+        printf("반환할 거스름돈 없음\n");
     }
+
+    balance = 0;
+    printf("잔액 0원 초기화\n");
+    printf("반환 종료\n\n");
 }
 
-int main() 
-{
-    VendingMachine vm = {0};
-    printf("--- 자판기 시뮬레이션 시작 ---\n");
+int main() {
+    char signal[64];
 
-    input_signal(&vm, 1, 1000); 
-    input_signal(&vm, 1, 500);  
-    input_signal(&vm, 2, 0);   
-    input_signal(&vm, 2, 0);    
+    while (1) {
+        printf("현재 잔액: %d원\n", balance);
+        printf("어떤 신호인가? (동전 투입 / 지급 버튼 / 반환 버튼 / 종료): ");
+
+        if (!fgets(signal, sizeof(signal), stdin)) break;
+        trim_newline(signal);
+
+        if (strcmp(signal, "동전 투입") == 0) {
+            int coin;
+            printf("동전 금액 입력: ");
+
+            if (scanf("%d", &coin) != 1) {
+                printf("잘못된 동전 입력\n");
+                int ch;
+                while ((ch = getchar()) != '\n' && ch != EOF) {}
+                continue;
+            }
+
+            int ch;
+            while ((ch = getchar()) != '\n' && ch != EOF) {}
+
+            if (is_valid_coin(coin)) {
+                balance += coin;
+                printf("잔액 합산 -> 현재 잔액: %d원\n", balance);
+            } else {
+                printf("해당 동전 반환: %d원\n", coin);
+            }
+
+        } else if (strcmp(signal, "지급 버튼") == 0) {
+            if (balance >= PRICE) {
+                printf("음료 지급\n");
+                balance -= PRICE;
+                printf("200원 차감 -> 현재 잔액: %d원\n", balance);
+
+                if (balance < PRICE) {
+                    return_module();
+                }
+            } else {
+                printf("잔액 부족, 지급 불가\n");
+            }
+
+        } else if (strcmp(signal, "반환 버튼") == 0) {
+            return_module();
+
+        } else if (strcmp(signal, "종료") == 0) {
+            printf("프로그램 종료\n");
+            break;
+
+        } else {
+            printf("잘못된 신호 무시\n");
+        }
+    }
+
     return 0;
 }
