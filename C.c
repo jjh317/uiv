@@ -8,9 +8,7 @@ int balance = 0;
 
 void trim_newline(char *s) {
     size_t len = strlen(s);
-    if (len > 0 && s[len - 1] == '\n') {
-        s[len - 1] = '\0';
-    }
+    if (len > 0 && s[len - 1] == '\n') s[len - 1] = '\0';
 }
 
 int is_valid_coin(int coin) {
@@ -77,8 +75,12 @@ int main() {
             while ((ch = getchar()) != '\n' && ch != EOF) {}
 
             if (is_valid_coin(coin)) {
-                balance += coin;
-                printf("잔액 합산 -> 현재 잔액: %d원\n", balance);
+                if (coin < PRICE) {
+                    printf("200원 미만 동전 반환: %d원\n", coin);
+                } else {
+                    balance += coin;
+                    printf("잔액 합산 -> 현재 잔액: %d원\n", balance);
+                }
             } else {
                 printf("해당 동전 반환: %d원\n", coin);
             }
