@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <limits.h>
 
 const int VALID_COINS[] = {500, 100, 50, 10};
 const int COIN_COUNT = 4;
@@ -7,8 +9,19 @@ const int PRICE = 200;
 int balance = 0;
 
 void trim_newline(char *s) {
-    size_t len = strlen(s);
-    if (len > 0 && s[len - 1] == '\n') s[len - 1] = '\0';
+    size_t n = strlen(s);
+    if (n > 0 && s[n - 1] == '\n') s[n - 1] = '\0';
+}
+
+int parse_int(const char *s, int *out) {
+    char *end;
+    long v = strtol(s, &end, 10);
+    if (end == s) return 0;
+    while (*end == ' ' || *end == '\t') end++;
+    if (*end != '\0') return 0;
+    if (v < INT_MIN || v > INT_MAX) return 0;
+    *out = (int)v;
+    return 1;
 }
 
 int is_valid_coin(int coin) {
@@ -52,6 +65,7 @@ void return_module() {
 
 int main() {
     char signal[64];
+    char coin_input[64];
 
     while (1) {
         printf("현재 잔액: %d원\n", balance);
@@ -63,27 +77,26 @@ int main() {
         if (strcmp(signal, "동전 투입") == 0) {
             int coin;
             printf("동전 금액 입력: ");
+            if (!fgets(coin_input, sizeof(coin_input), stdin)) break;
+            trim_newline(coin_input);
 
-            if (scanf("%d", &coin) != 1) {
+            if (!parse_int(coin_input, &coin)) {
                 printf("잘못된 동전 입력\n");
-                int ch;
-                while ((ch = getchar()) != '\n' && ch != EOF) {}
                 continue;
             }
 
-            int ch;
-            while ((ch = getchar()) != '\n' && ch != EOF) {}
-
-            if (is_valid_coin(coin)) {
-                if (coin < PRICE) {
-                    printf("200원 미만 동전 반환: %d원\n", coin);
-                } else {
-                    balance += coin;
-                    printf("잔액 합산 -> 현재 잔액: %d원\n", balance);
-                }
-            } else {
+            if (!is_valid_coin(coin)) {
                 printf("해당 동전 반환: %d원\n", coin);
+                continue;
             }
+
+            if (coin < PRICE) {
+                printf("200원 미만 동전 반환: %d원\n", coin);
+                continue;
+            }
+
+            balance += coin;
+            printf("잔액 합산 -> 현재 잔액: %d원\n", balance);
 
         } else if (strcmp(signal, "지급 버튼") == 0) {
             if (balance >= PRICE) {
@@ -104,9 +117,6 @@ int main() {
         } else if (strcmp(signal, "종료") == 0) {
             printf("프로그램 종료\n");
             break;
-
-        } else {
-            printf("잘못된 신호 무시\n");
         }
     }
 
