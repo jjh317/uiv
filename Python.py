@@ -1,46 +1,80 @@
-class VendingMachine:
-    def __init__(self):
-        self.balance = 0
+VALID_COINS = [500, 100, 50, 10]
+PRICE = 200
 
-def handle_return(vm):
-    units = [500, 100, 50, 10]
-    print("반환 내역: ", end="")
-    for unit in units:
-        count = vm.balance // unit
+balance = 0
+
+
+def return_module():
+    global balance
+
+    print("\n[거스름돈 반환 모듈]")
+    print("반환 시작")
+
+    change = {}
+    remaining = balance
+
+    # 고액권 우선 거스름돈 계산
+    for coin in VALID_COINS:
+        count = remaining // coin
         if count > 0:
-            print(f"[{unit}원:{count}개] ", end="")
-        vm.balance %= unit
-    print()
+            change[coin] = count
+            remaining %= coin
 
-def input_signal(vm, type_val, val=0):
-    if type_val == 1:
-        if val in [500, 100, 50, 10]:
-            vm.balance += val
-            print(f"{val}원 투입. 현재 잔액: {vm.balance}원")
+    if change:
+        print("거스름돈 반환 내역:")
+        for coin, count in change.items():
+            print(f"{coin}원 x {count}")
+    else:
+        print("반환할 거스름돈 없음")
+
+    # 잔액 0원 초기화
+    balance = 0
+    print("잔액 0원 초기화")
+    print("반환 종료\n")
+
+
+while True:
+    # 시작: 신호 대기
+    print(f"현재 잔액: {balance}원")
+    signal = input("어떤 신호인가? (동전 투입 / 지급 버튼 / 반환 버튼 / 종료): ").strip()
+
+    # 동전 투입
+    if signal == "동전 투입":
+        coin = int(input("동전 금액 입력: "))
+
+        # 유효 동전인가?
+        if coin in VALID_COINS:
+            # 잔액 합산
+            balance += coin
+            print(f"잔액 합산 -> 현재 잔액: {balance}원")
         else:
-            print(f"인식 불가 동전입니다: {val}원 반환")
-            
-    elif type_val == 2:
-        if vm.balance >= 200:
-            print("음료 지급 완료")
-            vm.balance -= 200
-            print(f"남은 잔액: {vm.balance}원")
+            # 해당 동전 반환
+            print(f"해당 동전 반환: {coin}원")
 
-            if vm.balance < 200:
-                print("잔액 200원 미만 자동 반환 작동")
-                handle_return(vm)
+    # 지급 버튼
+    elif signal == "지급 버튼":
+        # 잔액 >= 200?
+        if balance >= PRICE:
+            # 음료 지급 및 200원 차감
+            print("음료 지급")
+            balance -= PRICE
+            print(f"200원 차감 -> 현재 잔액: {balance}원")
+
+            # 잔액 < 200?
+            if balance < PRICE:
+                return_module()
         else:
-            print(f"잔액 부족 (현재 {vm.balance}원)")
-            
-    elif type_val == 3:
-        print("반환 버튼 눌림")
-        handle_return(vm)
+            print("잔액 부족, 지급 불가")
 
-if __name__ == "__main__":
-    vm = VendingMachine()
-    print("--- 자판기 시뮬레이션 시작 ---")
+    # 반환 버튼
+    elif signal == "반환 버튼":
+        return_module()
 
-    input_signal(vm, 1, 1000)
-    input_signal(vm, 1, 500)
-    input_signal(vm, 2, 0)
-    input_signal(vm, 2, 0)
+    # 종료
+    elif signal == "종료":
+        print("프로그램 종료")
+        break
+
+    # 기타 입력
+    else:
+        print("잘못된 신호 무시")
