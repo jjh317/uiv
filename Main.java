@@ -64,8 +64,12 @@ public class Main {
                 }
 
                 if (isValidCoin(coin)) {
-                    balance += coin;
-                    System.out.println("잔액 합산 -> 현재 잔액: " + balance + "원");
+                    if (coin < PRICE) {
+                        System.out.println("200원 미만 동전 반환: " + coin + "원");
+                    } else {
+                        balance += coin;
+                        System.out.println("잔액 합산 -> 현재 잔액: " + balance + "원");
+                    }
                 } else {
                     System.out.println("해당 동전 반환: " + coin + "원");
                 }
