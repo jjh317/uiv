@@ -31,8 +31,8 @@ public class Main {
 
         if (!change.isEmpty()) {
             System.out.println("거스름돈 반환 내역:");
-            for (Map.Entry<Integer, Integer> entry : change.entrySet()) {
-                System.out.println(entry.getKey() + "원 x " + entry.getValue());
+            for (Map.Entry<Integer, Integer> e : change.entrySet()) {
+                System.out.println(e.getKey() + "원 x " + e.getValue());
             }
         } else {
             System.out.println("반환할 거스름돈 없음");
@@ -53,26 +53,28 @@ public class Main {
 
             if (signal.equals("동전 투입")) {
                 System.out.print("동전 금액 입력: ");
-                String input = sc.nextLine().trim();
+                String raw = sc.nextLine().trim();
 
                 int coin;
                 try {
-                    coin = Integer.parseInt(input);
+                    coin = Integer.parseInt(raw);
                 } catch (NumberFormatException e) {
                     System.out.println("잘못된 동전 입력");
                     continue;
                 }
 
-                if (isValidCoin(coin)) {
-                    if (coin < PRICE) {
-                        System.out.println("200원 미만 동전 반환: " + coin + "원");
-                    } else {
-                        balance += coin;
-                        System.out.println("잔액 합산 -> 현재 잔액: " + balance + "원");
-                    }
-                } else {
+                if (!isValidCoin(coin)) {
                     System.out.println("해당 동전 반환: " + coin + "원");
+                    continue;
                 }
+
+                if (coin < PRICE) {
+                    System.out.println("200원 미만 동전 반환: " + coin + "원");
+                    continue;
+                }
+
+                balance += coin;
+                System.out.println("잔액 합산 -> 현재 잔액: " + balance + "원");
 
             } else if (signal.equals("지급 버튼")) {
                 if (balance >= PRICE) {
@@ -93,9 +95,6 @@ public class Main {
             } else if (signal.equals("종료")) {
                 System.out.println("프로그램 종료");
                 break;
-
-            } else {
-                System.out.println("잘못된 신호 무시");
             }
         }
 
